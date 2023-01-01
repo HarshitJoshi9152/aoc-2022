@@ -83,19 +83,19 @@ $day_input = Invoke-Webrequest $input_uri -WebSession $session
 
 mkdir $day_folder
 
-ni "$day_folder\input"
-ni "$day_folder\code.py"
+new-item "$day_folder\input"
+new-item "$day_folder\code.py"
 # ni "$day_folder\problem"
 
 # $day_input.content | Write-Output "$day_folder\input" DOESNT WORK
-Set-Content -Path "$day_folder\input" -Value $day_input
+set-content -Path "$day_folder\input" -Value $day_input
 
 
 code "$day_folder\input"
 code "$day_folder\code.py"
 
 
-cd $day_folder
+set-location $day_folder
 
 # Make the folder for this day if it doesnot exist
 # [System.IO.File]::exists("C:\Users\harsj\code\aoc2022\aoc.ps1") or Test-Path
