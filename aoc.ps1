@@ -1,12 +1,5 @@
-param([Int32] $day=-1, [Int32] $answer=0)
+param([Int32] $day=-1, [Int32] $answer=0) # is there any None / NULL type in PS coz i cant leave it unassigned, OKAY MAYBE I CAN !
 
-# if ($submit -eq $True)
-# {
-#   Write-Debug "Not implemented" # this is not shown with stdout
-#   # hmm whats the difference
-#   Write-Host "NOT IMPLEMENTED"
-#   Exit 0
-# }
 
 if (!($day -lt 26 -and $day -gt 0))
 {
@@ -15,20 +8,31 @@ if (!($day -lt 26 -and $day -gt 0))
 }
 
 
-if ($answer -ne 0)
+# Check if folder for this day already exists
+
+if (Test-Path ".\day$day")
+{
+  Write-Output "Folder for day $day already exists"
+  Exit 1
+}
+
+# Setting up cookies/session
+$session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+# inspect and research the WebRequestSession OBJECT PROPERTIES it might be helpful in understanding the HTTP protocol
+$cookie = New-Object System.Net.Cookie 
+$cookie.Name = "session"
+$cookie.Value = Get-Content ".\.session"
+$cookie.Domain = "adventofcode.com"
+$session.Cookies.Add($cookie);
+# https://gist.github.com/lawrencegripper/6bee7de123bea1936359
+
+
+# Submittig the answer
+if ($answer -ne 0) # using $null instead of 0 doesnt work i wonder why
 {
   # for submiting the result
 
   $submit_page_uri = "https://adventofcode.com/2022/day/$day"
-  
-  # 
-  $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
-  $cookie = New-Object System.Net.Cookie 
-  $cookie.Name = "session"
-  $cookie.Value = Get-Content ".\.session"
-  $cookie.Domain = "adventofcode.com"
-  $session.Cookies.Add($cookie);
-  # 
   
   $submit_page = Invoke-Webrequest $submit_page_uri -WebSession $session
   $submit_page.Forms[0].Fields.answer = $answer
@@ -42,14 +46,7 @@ if ($answer -ne 0)
   Exit 0
 }
 
-# Check if folder for this day already exists
-
-if (Test-Path ".\day")
-{
-  Write-Host "Folder for day $day already exists"
-  Exit 1
-}
-
+# did this work ? idr
 # $Headers = @{
 # 	'Cookie' = 'session=53616c7465645f5ff28db16ffb792bc5c10e8ef6c396612e0318e32aec7bc279f2b08a9048106512afea0643555d6df9b98edec06ecc1642511a936010f95719'
 # }
@@ -57,22 +54,9 @@ if (Test-Path ".\day")
 
 $input_uri = "https://adventofcode.com/2022/day/$day/input"
 
-# https://gist.github.com/lawrencegripper/6bee7de123bea1936359
-
-$session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
-# inspect and research the WebRequestSession OBJECT PROPERTIES it might be helpful in understanding the HTTP protocol
-
-$cookie = New-Object System.Net.Cookie 
 
 
 # split the cookie name and Value by "="
-
-$cookie.Name = "session"
-$cookie.Value = Get-Content ".\.session"
-$cookie.Domain = "adventofcode.com"
-
-$session.Cookies.Add($cookie);
-
 
 $day_input = Invoke-Webrequest $input_uri -WebSession $session
 # Write-Output $day_input.content
@@ -80,19 +64,32 @@ $day_input = Invoke-Webrequest $input_uri -WebSession $session
 # Make the folder and the required file and open them in code
 
 [String] $day_folder = ".\day$day"
+[String] $input_file = "$day_folder\input"
+[String] $solution_file = "$day_folder\code.py"
+[String] $template_path = ".\template.py"
 
-mkdir $day_folder
+$null = mkdir $day_folder # assignment to $null to hide the output in terminal
 
-new-item "$day_folder\input"
-new-item "$day_folder\code.py"
-# ni "$day_folder\problem"
+$null = new-item $input_file
+$day_input.content > $input_file # writing the input , todo: maybe i do want to shave off the extra newlines at the end ...
+# Get-Content "./template.py" > "$day_folder\code" # could be unsafe ! i dont want to overwrite the contents !
 
-# $day_input.content | Write-Output "$day_folder\input" DOESNT WORK
-set-content -Path "$day_folder\input" -Value $day_input
+# note: actually its safe to just use the above line coz this part woulnt even run if the folder exists already, but i wanted to try to implement it anyways lol
+
+if (test-path $solution_file)
+{
+  Write-Output "$solution_file already exists, This operating would Overwrite the contents of $solution_file, proceed with CAUTION"
+  Get-Content $template_path | set-content -Path $solution_file -Confirm
+}
+else {
+  $null = new-item $solution_file
+  Copy-Item -Path $template_path -Destination $solution_file
+}
 
 
-code "$day_folder\input"
-code "$day_folder\code.py"
+# open in vscode
+code $input_file
+code $solution_file
 
 
 set-location $day_folder
