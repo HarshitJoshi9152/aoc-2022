@@ -1,4 +1,7 @@
-param([Int32] $day=-1, [Int32] $answer=0) # is there any None / NULL type in PS coz i cant leave it unassigned, OKAY MAYBE I CAN !
+param(
+  [Int32] $day=-1,
+  [Int32] $answer=0 
+) # is there any None / NULL type in PS coz i cant leave it unassigned, OKAY MAYBE I CAN !
 
 
 if (!($day -lt 26 -and $day -gt 0))
@@ -41,7 +44,8 @@ if ($answer -ne 0) # using $null instead of 0 doesnt work i wonder why
   $submit_request = Invoke-WebRequest -Uri ($submit_page_uri + "/answer") -WebSession $session -Method POST -Body $submit_page.Forms[0].Fields
 
   Write-Output $submit_request.StatusCode
-  Write-Output $submit_request.content
+  # to show response from the server
+  $submit_request.ParsedHtml.getElementsByTagName("p") | %{$_.innertext} | Write-Output
 
   Exit 0
 }
