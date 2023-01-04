@@ -13,7 +13,7 @@ if (!($day -lt 26 -and $day -gt 0))
 
 # Check if folder for this day already exists
 
-if (Test-Path ".\day$day")
+if (($answer -eq 0) -and (Test-Path ".\day$day"))
 {
   Write-Output "Folder for day $day already exists"
   Exit 1
@@ -69,16 +69,22 @@ $day_input = Invoke-Webrequest $input_uri -WebSession $session
 
 [String] $day_folder = ".\day$day"
 [String] $input_file = "$day_folder\input"
-[String] $solution_file = "$day_folder\code.py"
+[String] $solution_file = "$day_folder\code.$extension"
 [String] $template_path = ".\template.py"
 
 $null = mkdir $day_folder # assignment to $null to hide the output in terminal
 
 $null = new-item $input_file
-$day_input.content > $input_file # writing the input , todo: maybe i do want to shave off the extra newlines at the end ...
+# The next line Messed up the encoding of the file or the contents somehow 
+# But i dont know if it was because of `>` or because i used '$day_input.contents' instead of $day_input
+# $day_input.content > $input_file # writing the input , todo: maybe i do want to shave off the extra newlines at the end ...
+
+set-content -Path "$day_folder\input" -Value $day_input
 # Get-Content "./template.py" > "$day_folder\code" # could be unsafe ! i dont want to overwrite the contents !
 
 # note: actually its safe to just use the above line coz this part woulnt even run if the folder exists already, but i wanted to try to implement it anyways lol
+
+# todo check the langauge chosen then use corresponding template if available
 
 if (test-path $solution_file)
 {
